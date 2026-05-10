@@ -31,10 +31,7 @@ AC_DEFUN([BC_CHECK_PLATFORM_BASE],[
 # Detect the full platform triple and call BC_CHECK_PLATFORM_BASE
 AC_DEFUN([BC_CHECK_PLATFORM],[
   AC_MSG_CHECKING([platform])
-  case ".$nonopt" in
-    .NONE ) PLATFORM=`${CONFIG_SHELL-/bin/sh} ./config.guess` ;;
-    *     ) PLATFORM="$nonopt" ;;
-  esac
+  PLATFORM=`${CONFIG_SHELL-/bin/sh} ./config.guess`
   PLATFORM=`${CONFIG_SHELL-/bin/sh} ./config.sub $PLATFORM`
   AC_SUBST([PLATFORM])
   AC_MSG_RESULT([$PLATFORM])
@@ -127,16 +124,31 @@ AC_DEFUN([BC_GCC_SUPPORTS_OPTION],[
 # Check a list of options, adding each supported one to CPPFLAGS
 AC_DEFUN([BC_GCC_SUPPORTS_OPTIONS],[
   for option in $1; do
-    BC_GCC_SUPPORTS_OPTION($option)
+    AC_MSG_CHECKING([whether $CC supports -$option])
+    echo "int some_variable = 0;" > conftest.c
+    if $CC -$option -c conftest.c -o conftest.o > /dev/null 2>&1; then
+      CPPFLAGS="$CPPFLAGS -$option"
+      AC_MSG_RESULT([yes])
+    else
+      AC_MSG_RESULT([no])
+    fi
+    rm -f conftest.c conftest.o
   done
 ])
 
 # Check a list of options, stopping at the first supported one
 AC_DEFUN([BC_GCC_SUPPORTS_OPTIONS_EXCLUSIVE],[
   for option in $1; do
-    BC_GCC_SUPPORTS_OPTION($option)
-    if echo "$CPPFLAGS" | grep $option > /dev/null; then
+    AC_MSG_CHECKING([whether $CC supports -$option])
+    echo "int some_variable = 0;" > conftest.c
+    if $CC -$option -c conftest.c -o conftest.o > /dev/null 2>&1; then
+      CPPFLAGS="$CPPFLAGS -$option"
+      AC_MSG_RESULT([yes])
+      rm -f conftest.c conftest.o
       break
+    else
+      AC_MSG_RESULT([no])
     fi
+    rm -f conftest.c conftest.o
   done
 ])

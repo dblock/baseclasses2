@@ -1,5 +1,6 @@
 AC_INIT([baseclasses2], [1.0])
 AC_CONFIG_MACRO_DIR([m4])
+m4_include([m4/macros.m4])
 
 echo "Running baseclasses2 Configuration Script"
 

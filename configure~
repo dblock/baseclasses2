@@ -2682,10 +2682,7 @@ echo "Running baseclasses2 Configuration Script"
 
   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking platform" >&5
 printf %s "checking platform... " >&6; }
-  case ".$nonopt" in
-    .NONE ) PLATFORM=`${CONFIG_SHELL-/bin/sh} ./config.guess` ;;
-    *     ) PLATFORM="$nonopt" ;;
-  esac
+  PLATFORM=`${CONFIG_SHELL-/bin/sh} ./config.guess`
   PLATFORM=`${CONFIG_SHELL-/bin/sh} ./config.sub $PLATFORM`
 
   { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $PLATFORM" >&5

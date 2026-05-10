@@ -17,4 +17,4 @@ clean: $(TARGETS)
 
 $(OBJ)/%.o : %.cpp
 	-@mkdir -p $(OBJ)
-	@GCC@ $(DEBUG_CFLAGS) -c -D_OS_@BASEOS@ @DEFS@ @CPPFLAGS@ $(INCLUDES) $< -o $@
+	@CXX@ $(DEBUG_CFLAGS) -std=c++11 -c -D_OS_@BASEOS@ @DEFS@ @CPPFLAGS@ $(INCLUDES) $< -o $@

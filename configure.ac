@@ -5,7 +5,7 @@ m4_include([m4/macros.m4])
 echo "Running baseclasses2 Configuration Script"
 
 BC_CHECK_PLATFORM
-BC_GCC_CHECK
+AC_PROG_CXX
 BC_MAKE_CHECK
 
 AC_PROG_MAKE_SET

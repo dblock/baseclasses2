@@ -17,7 +17,7 @@ all debug:
 	$(RANLIB) $(LIB)/lib$(LIBNAME).a
 
 check:
-	@GCC@ -std=c++11 -I. -Isrc @CPPFLAGS@ \
+	@CXX@ -std=c++11 -I. -Isrc @CPPFLAGS@ \
 	  $(shell pkg-config --cflags --libs cppunit) \
 	  -o tests/run_tests \
 	  tests/main.cpp tests/string_test.cpp src/string.cpp

@@ -18,4 +18,5 @@ AC_CHECK_HEADERS([unistd.h strings.h])
 AC_TYPE_SIZE_T
 
 AC_CONFIG_HEADERS([platform/config.hpp])
-AC_OUTPUT([Makefile Makefile.each])
+AC_CONFIG_FILES([Makefile Makefile.each])
+AC_OUTPUT

@@ -1,0 +1,20 @@
+OBJ     = ../obj
+SOURCES = $(shell ls *.cpp)
+TARGETS = $(addprefix $(OBJ)/,$(subst cpp,o,$(SOURCES)))
+
+INCLUDES = -I ./ -I ../ -I $(HOME)/include
+
+ifneq (,$(findstring debug,$(MAKECMDGOALS)))
+  DEBUG_CFLAGS = -g -ggdb
+else
+  DEBUG_CFLAGS =
+endif
+
+debug all: $(TARGETS)
+
+clean: $(TARGETS)
+	-@rm -f $(TARGETS)
+
+$(OBJ)/%.o : %.cpp
+	-@mkdir -p $(OBJ)
+	@GCC@ $(DEBUG_CFLAGS) -c -D_OS_@BASEOS@ @DEFS@ @CPPFLAGS@ $(INCLUDES) $< -o $@

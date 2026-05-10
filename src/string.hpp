@@ -7,9 +7,16 @@
 #ifndef BASE_STRING_HPP
 #define BASE_STRING_HPP
 
-#include <platform/include.hpp>
-
-#define CSTRING_CHARTYPE char
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <wchar.h>
+#include <stddef.h>
+#include <assert.h>
+#include <ctype.h>
+#include <wctype.h>
+#include <stdarg.h>
+#include <iostream>
 
 template <class C, int StackSize = 18>
 class CStringTemplate {
@@ -103,15 +110,15 @@ public:
     inline bool endsWithIgnoreCase(const C * buf) const { return endsWithIgnoreCase(buf, (int)std::char_traits<C>::length(buf)); }
 
     /* streaming */
-    inline basic_ostream<C>& operator<<(basic_ostream<C>& stream) const { stream << m_Data; return stream; }
-    basic_istream<C>& operator>>(basic_istream<C>& stream);
+    inline std::basic_ostream<C>& operator<<(std::basic_ostream<C>& stream) const { stream << m_Data; return stream; }
+    std::basic_istream<C>& operator>>(std::basic_istream<C>& stream);
 
     /* access */
     inline const C * const c_str(void) const { return (const C * const)m_Data; }
-    inline const C& at(const unsigned int index) const { _S_DEBUG(assert(index < m_Length)); return m_Data[index]; }
-    inline C& at(const unsigned int index) { _S_DEBUG(assert(index < m_Length)); return m_Data[index]; }
-    inline C& operator[](const unsigned int index) const { _S_DEBUG(assert(index < m_Length)); return m_Data[index]; }
-    inline void setAt(const unsigned int index, const C c) { _S_DEBUG(assert(index < m_Length)); m_Data[index] = c; }
+    inline const C& at(const unsigned int index) const { assert(index < m_Length); return m_Data[index]; }
+    inline C& at(const unsigned int index) { assert(index < m_Length); return m_Data[index]; }
+    inline C& operator[](const unsigned int index) const { assert(index < m_Length); return m_Data[index]; }
+    inline void setAt(const unsigned int index, const C c) { assert(index < m_Length); m_Data[index] = c; }
 
     /* concatenation */
     void append(const CStringTemplate&);
@@ -214,8 +221,8 @@ public:
     bool readString(int& pos, CStringTemplate * str) const;
 };
 
-template <class C, int StackSize> inline basic_ostream<C>& operator<<(basic_ostream<C>& stream, const CStringTemplate<C, StackSize>& s) { return s.operator<<(stream); }
-template <class C, int StackSize> inline basic_istream<C>& operator>>(basic_istream<C>& stream, CStringTemplate<C, StackSize>& s) { return s.operator>>(stream); }
+template <class C, int StackSize> inline std::basic_ostream<C>& operator<<(std::basic_ostream<C>& stream, const CStringTemplate<C, StackSize>& s) { return s.operator<<(stream); }
+template <class C, int StackSize> inline std::basic_istream<C>& operator>>(std::basic_istream<C>& stream, CStringTemplate<C, StackSize>& s) { return s.operator>>(stream); }
 
 template <class C, int S1, int S2> inline bool operator==(const CStringTemplate<C, S1>& L, const CStringTemplate<C, S2>& R) { return L.equals(R.c_str(), (int)R.length()); }
 template <class C, int StackSize> inline bool operator==(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator==(R); }

@@ -78,7 +78,7 @@ CStringTemplate<C, StackSize>::CStringTemplate(const C c) {
 /* streaming */
 
 template <class C, int StackSize>
-basic_istream<C>& CStringTemplate<C, StackSize>::operator>>(basic_istream<C>& stream) {
+std::basic_istream<C>& CStringTemplate<C, StackSize>::operator>>(std::basic_istream<C>& stream) {
     C buffer[32], c;
     while (1) {
         c = (C)'\n';
@@ -456,11 +456,11 @@ template <class C, int StackSize>
 inline void CStringTemplate<C, StackSize>::setSize(unsigned int desiredSize, bool preserve) {
     if (desiredSize <= m_Size) return;
     unsigned int size = desiredSize;
-    if (size < (unsigned int)MBYTE) {
+    if (size < (unsigned int)1048576) {
         size = (m_Size << 1) + 1;
         while (size < desiredSize) size <<= 1;
     } else {
-        size = ((size + KBYTE - 1) / KBYTE) * KBYTE;
+        size = ((size + 1024 - 1) / 1024) * 1024;
     }
     C * m_NewData = new C[size];
     if (preserve && m_Length) {

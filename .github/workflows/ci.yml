@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get install -y autoconf libcppunit-dev pkg-config
+
+      - name: Configure
+        run: autoconf && ./configure
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make check

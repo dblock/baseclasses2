@@ -4,8 +4,9 @@ A modernized C++ string library extracted from [baseclasses](https://github.com/
 
 ## What's included
 
-- `string/string.hpp` + `string/string.cpp` — `CStringTemplate<C>` / `CString`
+- `src/string.hpp` + `src/string.cpp` — `CStringTemplate<C>` / `CString`
 - `platform/` — lightweight platform detection headers
+- `tests/` — CppUnit test suite
 
 Removed from the original: Object, Vector, Internet (URL/HTML), EStrings, GStrings, StringTable, tracing, and property macros.
 
@@ -13,14 +14,15 @@ API uses modern camelCase conventions (`toUpper`, `trim`, `indexOf`, etc.).
 
 ## Requirements
 
-- **C++ compiler**: `g++` or `clang++` (C++98 or later)
+- **C++ compiler**: `g++` or `clang++` (C++11 or later)
 - **autoconf** 2.69+: to regenerate `configure` from `configure.ac`
 - **GNU make**
+- **CppUnit** 1.15+: for running tests
 
 Install on macOS with Homebrew:
 
 ```sh
-brew install autoconf
+brew install autoconf cppunit
 ```
 
 ## Building
@@ -33,17 +35,30 @@ make
 
 This produces `lib/libbasecl.a`.
 
+## Running tests
+
+```sh
+make check
+```
+
+Or directly:
+
+```sh
+g++ -std=c++11 -I. -Isrc $(pkg-config --cflags --libs cppunit) \
+    -o tests/run_tests tests/main.cpp tests/string_test.cpp src/string.cpp
+./tests/run_tests
+```
+
 ## Quick compile (no autoconf)
 
 ```sh
-g++ -I. -o test test.cpp string/string.cpp
-./test
+g++ -std=c++11 -I. -Isrc -o myapp myapp.cpp src/string.cpp
 ```
 
 ## Usage
 
 ```cpp
-#include <string/string.hpp>
+#include <string.hpp>
 
 CString s("Hello, World!");
 s.toUpper();                              // "HELLO, WORLD!"

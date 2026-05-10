@@ -1,5 +1,5 @@
 LIBNAME = basecl
-DIRS    = string
+DIRS    = src
 
 PWD  = $(shell pwd)
 OBJ  = obj
@@ -16,7 +16,15 @@ all debug:
 	$(AR) rc $(LIB)/lib$(LIBNAME).a $(OBJ)/*.o
 	$(RANLIB) $(LIB)/lib$(LIBNAME).a
 
+check:
+	@GCC@ -std=c++11 -I. -Isrc @CPPFLAGS@ \
+	  $(shell pkg-config --cflags --libs cppunit) \
+	  -o tests/run_tests \
+	  tests/main.cpp tests/string_test.cpp src/string.cpp
+	./tests/run_tests
+
 clean: cleanup all
 
 cleanup:
 	-@rm -f $(OBJ)/*.o
+	-@rm -f tests/run_tests

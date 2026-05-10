@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <wchar.h>
 #include <stddef.h>
 #include <assert.h>
 #include <ctype.h>
+#include <wctype.h>
 #include <stdarg.h>
 
 #include <new>

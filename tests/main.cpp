@@ -10,6 +10,8 @@
 #include <cppunit/TestResult.h>
 
 #include "string_test.hpp"
+#include "wstring_test.hpp"
+#include "stack_size_test.hpp"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StringConstructorTest);
 CPPUNIT_TEST_SUITE_REGISTRATION(StringComparisonTest);

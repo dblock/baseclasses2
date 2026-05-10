@@ -9,13 +9,12 @@
 
 #include <platform/include.hpp>
 
-#define CSTRING_STACK_SIZE 18
 #define CSTRING_CHARTYPE char
 
-template <class C>
+template <class C, int StackSize = 18>
 class CStringTemplate {
 private:
-    C m_StackData[CSTRING_STACK_SIZE];
+    C m_StackData[StackSize];
     C * m_RealAllocData;
 protected:
     C * m_Data;
@@ -26,7 +25,7 @@ public:
     inline unsigned int length() const { return m_Length; }
     inline unsigned int getSize() const { return m_Size; }
 public:
-    static const CStringTemplate<C> EmptyCString;
+    static const CStringTemplate EmptyCString;
 
     /* size and length */
     void setSize(unsigned int size, bool preserve = true);
@@ -42,62 +41,70 @@ public:
     CStringTemplate(void);
     CStringTemplate(const C * const);
     CStringTemplate(const C * const, int);
-    CStringTemplate(const CStringTemplate<C>&);
+    CStringTemplate(const CStringTemplate&);
     CStringTemplate(const C);
+    template <int OtherStackSize>
+    CStringTemplate(const CStringTemplate<C, OtherStackSize>& other) : CStringTemplate() { copyBuffer(other.c_str(), (int)other.length()); }
     ~CStringTemplate(void);
 
     /* assignment */
-    virtual void operator=(const CStringTemplate<C>&);
+    virtual void operator=(const CStringTemplate&);
     virtual void operator=(const C);
     virtual void operator=(const C * const);
+    template <int OtherStackSize>
+    void operator=(const CStringTemplate<C, OtherStackSize>& other) { copyBuffer(other.c_str(), (int)other.length()); }
 
     /* comparison operators */
-    inline bool operator<(const CStringTemplate<C>& s) const { return compare(s.m_Data, s.m_Length) < 0; }
-    inline bool operator>(const CStringTemplate<C>& s) const { return compare(s.m_Data, s.m_Length) > 0; }
-    inline bool operator<=(const CStringTemplate<C>& s) const { return compare(s.m_Data, s.m_Length) <= 0; }
-    inline bool operator>=(const CStringTemplate<C>& s) const { return compare(s.m_Data, s.m_Length) >= 0; }
-    inline bool operator==(const CStringTemplate<C>& s) const { return equals(s.m_Data, s.m_Length); }
-    inline bool operator!=(const CStringTemplate<C>& s) const { return notEquals(s.m_Data, s.m_Length); }
-    inline bool operator<(const C * s) const { return compare(s, base_strlen(s)) < 0; }
-    inline bool operator>(const C * s) const { return compare(s, base_strlen(s)) > 0; }
-    inline bool operator<=(const C * s) const { return compare(s, base_strlen(s)) <= 0; }
-    inline bool operator>=(const C * s) const { return compare(s, base_strlen(s)) >= 0; }
-    inline bool operator==(const C * s) const { return equals(s, base_strlen(s)); }
-    inline bool operator!=(const C * s) const { return notEquals(s, base_strlen(s)); }
+    inline bool operator<(const CStringTemplate& s) const { return compare(s.m_Data, s.m_Length) < 0; }
+    inline bool operator>(const CStringTemplate& s) const { return compare(s.m_Data, s.m_Length) > 0; }
+    inline bool operator<=(const CStringTemplate& s) const { return compare(s.m_Data, s.m_Length) <= 0; }
+    inline bool operator>=(const CStringTemplate& s) const { return compare(s.m_Data, s.m_Length) >= 0; }
+    inline bool operator==(const CStringTemplate& s) const { return equals(s.m_Data, s.m_Length); }
+    inline bool operator!=(const CStringTemplate& s) const { return notEquals(s.m_Data, s.m_Length); }
+    inline bool operator<(const C * s) const { return compare(s, (int)std::char_traits<C>::length(s)) < 0; }
+    inline bool operator>(const C * s) const { return compare(s, (int)std::char_traits<C>::length(s)) > 0; }
+    inline bool operator<=(const C * s) const { return compare(s, (int)std::char_traits<C>::length(s)) <= 0; }
+    inline bool operator>=(const C * s) const { return compare(s, (int)std::char_traits<C>::length(s)) >= 0; }
+    inline bool operator==(const C * s) const { return equals(s, (int)std::char_traits<C>::length(s)); }
+    inline bool operator!=(const C * s) const { return notEquals(s, (int)std::char_traits<C>::length(s)); }
+    template <int OtherStackSize>
+    inline bool operator==(const CStringTemplate<C, OtherStackSize>& s) const { return equals(s.c_str(), (int)s.length()); }
+    template <int OtherStackSize>
+    inline bool operator!=(const CStringTemplate<C, OtherStackSize>& s) const { return notEquals(s.c_str(), (int)s.length()); }
 
     /* comparison methods */
-    inline int compare(const CStringTemplate<C>& s, int start = 0, bool respectLength = true) const { return compare(s.m_Data, s.m_Length, start, respectLength); }
+    inline int compare(const CStringTemplate& s, int start = 0, bool respectLength = true) const { return compare(s.m_Data, s.m_Length, start, respectLength); }
     int compare(const C * buf, int len, int start = 0, bool respectLength = true) const;
-    inline int compareIgnoreCase(const CStringTemplate<C>& s, int start = 0, bool respectLength = true) const { return compareIgnoreCase(s.m_Data, s.m_Length, start, respectLength); }
+    inline int compareIgnoreCase(const CStringTemplate& s, int start = 0, bool respectLength = true) const { return compareIgnoreCase(s.m_Data, s.m_Length, start, respectLength); }
     int compareIgnoreCase(const C * buf, int len, int start = 0, bool respectLength = true) const;
-    inline bool equals(const CStringTemplate<C>& s) const { return equals(s.m_Data, s.m_Length); }
+    inline bool equals(const CStringTemplate& s) const { return equals(s.m_Data, s.m_Length); }
     bool equals(const C * buf, int len) const;
-    inline bool equals(const C * buf) const { return equals(buf, base_strlen(buf)); }
-    inline bool notEquals(const CStringTemplate<C>& s) const { return notEquals(s.m_Data, s.m_Length); }
+    inline bool equals(const C * buf) const { return equals(buf, (int)std::char_traits<C>::length(buf)); }
+    inline bool notEquals(const CStringTemplate& s) const { return notEquals(s.m_Data, s.m_Length); }
     bool notEquals(const C * buf, int len) const;
-    inline bool notEquals(const C * buf) const { return notEquals(buf, base_strlen(buf)); }
-    inline bool equalsIgnoreCase(const CStringTemplate<C>& s) const { return equalsIgnoreCase(s.m_Data, s.m_Length); }
+    inline bool notEquals(const C * buf) const { return notEquals(buf, (int)std::char_traits<C>::length(buf)); }
+    inline bool equalsIgnoreCase(const CStringTemplate& s) const { return equalsIgnoreCase(s.m_Data, s.m_Length); }
     bool equalsIgnoreCase(const C * buf, int len) const;
-    inline bool equalsIgnoreCase(const C * buf) const { return equalsIgnoreCase(buf, base_strlen(buf)); }
-    inline bool equalsIgnoreCase(const CStringTemplate<C>& s, bool caseSensitive) const { return caseSensitive ? equals(s) : equalsIgnoreCase(s); }
-    inline bool startsWith(const CStringTemplate<C>& s) const { return startsWith(s.m_Data, s.m_Length); }
+    inline bool equalsIgnoreCase(const C * buf) const { return equalsIgnoreCase(buf, (int)std::char_traits<C>::length(buf)); }
+    inline bool equalsIgnoreCase(const CStringTemplate& s, bool caseSensitive) const { return caseSensitive ? equals(s) : equalsIgnoreCase(s); }
+    inline bool startsWith(const CStringTemplate& s) const { return startsWith(s.m_Data, s.m_Length); }
     bool startsWith(const C * buf, int len) const;
-    inline bool startsWith(const C * buf) const { return startsWith(buf, base_strlen(buf)); }
-    inline bool startsWith(const CStringTemplate<C>& s, bool caseSensitive) const { return caseSensitive ? startsWith(s) : startsWithIgnoreCase(s); }
-    inline bool startsWithIgnoreCase(const CStringTemplate<C>& s) const { return startsWithIgnoreCase(s.m_Data, s.m_Length); }
+    inline bool startsWith(const C * buf) const { return startsWith(buf, (int)std::char_traits<C>::length(buf)); }
+    inline bool startsWith(const CStringTemplate& s, bool caseSensitive) const { return caseSensitive ? startsWith(s) : startsWithIgnoreCase(s); }
+    inline bool startsWithIgnoreCase(const CStringTemplate& s) const { return startsWithIgnoreCase(s.m_Data, s.m_Length); }
     bool startsWithIgnoreCase(const C * buf, int len) const;
-    inline bool startsWithIgnoreCase(const C * buf) const { return startsWithIgnoreCase(buf, base_strlen(buf)); }
-    inline bool endsWith(const CStringTemplate<C>& s) const { return endsWith(s.m_Data, s.m_Length); }
+    inline bool startsWithIgnoreCase(const C * buf) const { return startsWithIgnoreCase(buf, (int)std::char_traits<C>::length(buf)); }
+    inline bool endsWith(const CStringTemplate& s) const { return endsWith(s.m_Data, s.m_Length); }
     bool endsWith(const C * buf, int len) const;
-    inline bool endsWith(const C * buf) const { return endsWith(buf, base_strlen(buf)); }
-    inline bool endsWith(const CStringTemplate<C>& s, bool caseSensitive) const { return caseSensitive ? endsWith(s) : endsWithIgnoreCase(s); }
-    inline bool endsWithIgnoreCase(const CStringTemplate<C>& s) const { return endsWithIgnoreCase(s.m_Data, s.m_Length); }
+    inline bool endsWith(const C * buf) const { return endsWith(buf, (int)std::char_traits<C>::length(buf)); }
+    inline bool endsWith(const CStringTemplate& s, bool caseSensitive) const { return caseSensitive ? endsWith(s) : endsWithIgnoreCase(s); }
+    inline bool endsWithIgnoreCase(const CStringTemplate& s) const { return endsWithIgnoreCase(s.m_Data, s.m_Length); }
     bool endsWithIgnoreCase(const C * buf, int len) const;
-    inline bool endsWithIgnoreCase(const C * buf) const { return endsWithIgnoreCase(buf, base_strlen(buf)); }
+    inline bool endsWithIgnoreCase(const C * buf) const { return endsWithIgnoreCase(buf, (int)std::char_traits<C>::length(buf)); }
 
     /* streaming */
-    inline ostream& operator<<(ostream& stream) const { stream << m_Data; return stream; }
-    istream& operator>>(istream& stream);
+    inline basic_ostream<C>& operator<<(basic_ostream<C>& stream) const { stream << m_Data; return stream; }
+    basic_istream<C>& operator>>(basic_istream<C>& stream);
 
     /* access */
     inline const C * const c_str(void) const { return (const C * const)m_Data; }
@@ -107,35 +114,37 @@ public:
     inline void setAt(const unsigned int index, const C c) { _S_DEBUG(assert(index < m_Length)); m_Data[index] = c; }
 
     /* concatenation */
-    void append(const CStringTemplate<C>&);
+    void append(const CStringTemplate&);
     void append(const C);
     void append(const C * const, int);
     void append(const C * const);
+    template <int OtherStackSize>
+    void append(const CStringTemplate<C, OtherStackSize>& s) { append(s.c_str(), (int)s.length()); }
+    template <int OtherStackSize>
+    void operator+=(const CStringTemplate<C, OtherStackSize>& s) { append(s); }
 
     /* static char case ops */
     static inline C toUpperChar(const C ch) { if ((ch <= 'z') && (ch >= 'a')) return (C)(ch - ('a' - 'A')); else return ch; }
     static inline C toLowerChar(const C ch) { if ((ch <= 'Z') && (ch >= 'A')) return (C)(ch + ('a' - 'A')); else return ch; }
 
     /* move */
-    void moveFrom(CStringTemplate<C>&);
+    void moveFrom(CStringTemplate&);
 
     /* clear & erase */
     void clear(void);
     void erase(int start, int count);
 
     /* insert */
-    void insert(const unsigned int pos, const CStringTemplate<C>&);
+    void insert(const unsigned int pos, const CStringTemplate&);
     void insert(const unsigned int pos, const C);
     void insert(const unsigned int pos, const C * const buffer, int bufferLen = -1);
 
     /* replace */
     bool replace(const C source, const C target);
-    bool replace(const CStringTemplate<C>&, const CStringTemplate<C>&, bool caseSensitive = true);
-    bool replace(const C chLeft, const C chRight, const C chTarget);
+    bool replace(const CStringTemplate&, const CStringTemplate&, bool caseSensitive = true);
 
     /* count */
     int count(const C ch) const;
-    int count(const C chLeft, const C chRight) const;
 
     /* case */
     void toUpper(void);
@@ -154,12 +163,12 @@ public:
     int lastIndexOf(const C ch) const;
     int lastIndexOf(const C ch, const int start) const;
     int indexOf(const C ch, const int start = 0) const;
-    int indexOf(const CStringTemplate<C>& str, const int start = 0) const;
-    int indexOfIgnoreCase(const CStringTemplate<C>& str, const int start = 0) const;
+    int indexOf(const CStringTemplate& str, const int start = 0) const;
+    int indexOfIgnoreCase(const CStringTemplate& str, const int start = 0) const;
     int indexOf(const C * const buffer, const int bufLen, const int start = 0) const;
     int indexOfIgnoreCase(const C * const buffer, const int bufLen, const int start = 0) const;
-    inline int indexOf(const C * const buffer, const int start = 0) const { return indexOf(buffer, base_strlen(buffer), start); }
-    inline int indexOfIgnoreCase(const C * const buffer, const int start = 0) const { return indexOfIgnoreCase(buffer, base_strlen(buffer), start); }
+    inline int indexOf(const C * const buffer, const int start = 0) const { return indexOf(buffer, (int)std::char_traits<C>::length(buffer), start); }
+    inline int indexOfIgnoreCase(const C * const buffer, const int start = 0) const { return indexOfIgnoreCase(buffer, (int)std::char_traits<C>::length(buffer), start); }
 
     /* numeric checks */
     int getInt(const int start, const int length) const;
@@ -172,34 +181,32 @@ public:
 
     /* misc */
     bool terminateWith(const C ch);
-    void removeDuplicate(const C chLeft, const C chRight);
-    void remove(const C chLeft, const C chRight);
 
     /* concatenation operators */
-    inline void operator+=(const CStringTemplate<C>& s) { append(s); }
+    inline void operator+=(const CStringTemplate& s) { append(s); }
     inline void operator+=(const C c) { append(c); }
     inline void operator+=(const C * const buffer) { append(buffer); }
-    inline void quote(void) { trim('\''); trim('\"'); operator=('\"' + (*this) + '\"'); }
-    inline void dequote(void) { trim('\''); trim('\"'); }
+    inline void quote(void) { trim((C)'\''); trim((C)'\"'); operator=((C)'\"' + (*this) + (C)'\"'); }
+    inline void dequote(void) { trim((C)'\''); trim((C)'\"'); }
 
     /* substrings */
-    inline int mid(int first, CStringTemplate<C> * result) const { return mid(first, m_Length, result); }
-    int mid(int first, int count, CStringTemplate<C> * result) const;
-    inline int left(int count, CStringTemplate<C> * result) const { return mid(0, count, result); }
-    inline int right(int count, CStringTemplate<C> * result) const { return mid(m_Length - count, count, result); }
-    int extractLine(CStringTemplate<C> * result);
-    int getLine(CStringTemplate * result, int& pos) const;
+    CStringTemplate mid(int first, int count) const;
+    inline CStringTemplate mid(int first) const { return mid(first, m_Length); }
+    inline CStringTemplate left(int count) const { return mid(0, count); }
+    inline CStringTemplate right(int count) const { return mid(m_Length - count, count); }
+    CStringTemplate extractLine();
+    CStringTemplate getLine(int& pos) const;
 
     /* type conversions */
     static CStringTemplate fromLong(long value, int leftPad = 0, const int base = 10);
     static CStringTemplate fromInt(int value, int leftPad = 0, const int base = 10);
     static CStringTemplate fromFloat(float value, int leftPad = 0, int fracPad = 0, int base = 10);
     static CStringTemplate fromDouble(double value, int leftPad = 0, int fracPad = 0, int base = 10);
-    inline static int toHex(const CStringTemplate<C>& s) { int r; sscanf((const C *)s.c_str(), "%x", &r); return r; }
-    inline static int toInt(const CStringTemplate<C>& s) { return s.m_Length ? atoi((const C *)s.c_str()) : 0; }
-    static float toFloat(const CStringTemplate<C>& s) { return s.m_Length ? (float)atof((const C *)s.c_str()) : 0; }
-    static double toDouble(const CStringTemplate<C>& s) { return s.m_Length ? (double)atof((const C *)s.c_str()) : 0; }
-    static long toLong(const CStringTemplate<C>& s) { return s.m_Length ? atol((const C *)s.c_str()) : 0; }
+    static int toHex(const CStringTemplate& s);
+    static int toInt(const CStringTemplate& s);
+    static float toFloat(const CStringTemplate& s);
+    static double toDouble(const CStringTemplate& s);
+    static long toLong(const CStringTemplate& s);
 
     /* scanners */
     bool readDigit(int& pos, int * digit) const;
@@ -207,31 +214,32 @@ public:
     bool readString(int& pos, CStringTemplate * str) const;
 };
 
-#define CSTRING_INTERVAL(_C, _L, _R) ((_C >= _L) && (_C <= _R))
+template <class C, int StackSize> inline basic_ostream<C>& operator<<(basic_ostream<C>& stream, const CStringTemplate<C, StackSize>& s) { return s.operator<<(stream); }
+template <class C, int StackSize> inline basic_istream<C>& operator>>(basic_istream<C>& stream, CStringTemplate<C, StackSize>& s) { return s.operator>>(stream); }
 
-template <class C> inline ostream& operator<<(ostream& stream, const CStringTemplate<C>& s) { return s.operator<<(stream); }
-template <class C> inline istream& operator>>(istream& stream, CStringTemplate<C>& s) { return s.operator>>(stream); }
+template <class C, int S1, int S2> inline bool operator==(const CStringTemplate<C, S1>& L, const CStringTemplate<C, S2>& R) { return L.equals(R.c_str(), (int)R.length()); }
+template <class C, int StackSize> inline bool operator==(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator==(R); }
+template <class C, int StackSize> inline bool operator==(const C * const L, const CStringTemplate<C, StackSize>& R) { return R.operator==(L); }
+template <class C, int S1, int S2> inline bool operator!=(const CStringTemplate<C, S1>& L, const CStringTemplate<C, S2>& R) { return !L.equals(R.c_str(), (int)R.length()); }
+template <class C, int StackSize> inline bool operator!=(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator!=(R); }
+template <class C, int StackSize> inline bool operator!=(const C * const L, const CStringTemplate<C, StackSize>& R) { return R.operator!=(L); }
+template <class C, int StackSize> inline bool operator<=(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator<=(R); }
+template <class C, int StackSize> inline bool operator<=(const C * const L, const CStringTemplate<C, StackSize>& R) { return !(R.operator>(L)); }
+template <class C, int StackSize> inline bool operator>=(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator>=(R); }
+template <class C, int StackSize> inline bool operator>=(const C * const L, const CStringTemplate<C, StackSize>& R) { return !(R.operator<(L)); }
+template <class C, int StackSize> inline bool operator<(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator<(R); }
+template <class C, int StackSize> inline bool operator<(const C * const L, const CStringTemplate<C, StackSize>& R) { return !(R.operator>=(L)); }
+template <class C, int StackSize> inline bool operator>(const CStringTemplate<C, StackSize>& L, const C * const R) { return L.operator>(R); }
+template <class C, int StackSize> inline bool operator>(const C * const L, const CStringTemplate<C, StackSize>& R) { return !(R.operator<=(L)); }
 
-template <class C> inline bool operator==(const CStringTemplate<C>& L, const CStringTemplate<C>& R) { return L.operator==(R); }
-template <class C> inline bool operator==(const CStringTemplate<C>& L, const C * const R) { return L.operator==(R); }
-template <class C> inline bool operator==(const C * const L, const CStringTemplate<C>& R) { return R.operator==(L); }
-template <class C> inline bool operator!=(const CStringTemplate<C>& L, const C * const R) { return L.operator!=(R); }
-template <class C> inline bool operator!=(const C * const L, const CStringTemplate<C>& R) { return R.operator!=(L); }
-template <class C> inline bool operator<=(const CStringTemplate<C>& L, const C * const R) { return L.operator<=(R); }
-template <class C> inline bool operator<=(const C * const L, const CStringTemplate<C>& R) { return !(R.operator>(L)); }
-template <class C> inline bool operator>=(const CStringTemplate<C>& L, const C * const R) { return L.operator>=(R); }
-template <class C> inline bool operator>=(const C * const L, const CStringTemplate<C>& R) { return !(R.operator<(L)); }
-template <class C> inline bool operator<(const CStringTemplate<C>& L, const C * const R) { return L.operator<(R); }
-template <class C> inline bool operator<(const C * const L, const CStringTemplate<C>& R) { return !(R.operator>=(L)); }
-template <class C> inline bool operator>(const CStringTemplate<C>& L, const C * const R) { return L.operator>(R); }
-template <class C> inline bool operator>(const C * const L, const CStringTemplate<C>& R) { return !(R.operator<=(L)); }
+template <class C, int S1, int S2> inline CStringTemplate<C, S1> operator+(const CStringTemplate<C, S1>& L, const CStringTemplate<C, S2>& R) { CStringTemplate<C, S1> r(L); r += R; return r; }
+template <class C, int StackSize> inline CStringTemplate<C, StackSize> operator+(const CStringTemplate<C, StackSize>& L, const C R) { CStringTemplate<C, StackSize> r(L); r += R; return r; }
+template <class C, int StackSize> inline CStringTemplate<C, StackSize> operator+(const C L, const CStringTemplate<C, StackSize>& R) { CStringTemplate<C, StackSize> r(L); r += R; return r; }
+template <class C, int StackSize> inline CStringTemplate<C, StackSize> operator+(const CStringTemplate<C, StackSize>& L, const C * const R) { CStringTemplate<C, StackSize> r(L); r += R; return r; }
+template <class C, int StackSize> inline CStringTemplate<C, StackSize> operator+(const C * const L, const CStringTemplate<C, StackSize>& R) { CStringTemplate<C, StackSize> r(L); r += R; return r; }
 
-template <class C> inline CStringTemplate<C> operator+(const CStringTemplate<C>& L, const CStringTemplate<C>& R) { CStringTemplate<C> r(L); r += R; return r; }
-template <class C> inline CStringTemplate<C> operator+(const CStringTemplate<C>& L, const C R) { CStringTemplate<C> r(L); r += R; return r; }
-template <class C> inline CStringTemplate<C> operator+(const C L, const CStringTemplate<C>& R) { CStringTemplate<C> r(L); r += R; return r; }
-template <class C> inline CStringTemplate<C> operator+(const CStringTemplate<C>& L, const C * const R) { CStringTemplate<C> r(L); r += R; return r; }
-template <class C> inline CStringTemplate<C> operator+(const C * const L, const CStringTemplate<C>& R) { CStringTemplate<C> r(L); r += R; return r; }
-
-typedef CStringTemplate<CSTRING_CHARTYPE> CString;
+typedef CStringTemplate<char>    CStringA;
+typedef CStringTemplate<wchar_t> CStringW;
+typedef CStringA CString;
 
 #endif

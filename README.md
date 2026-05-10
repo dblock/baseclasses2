@@ -4,13 +4,25 @@ A modernized C++ string library extracted from [baseclasses](https://github.com/
 
 ## What's included
 
-- `src/string.hpp` + `src/string.cpp` — `CStringTemplate<C>` / `CString`
-- `platform/` — lightweight platform detection headers
-- `tests/` — CppUnit test suite
+- `src/string.hpp` — `CStringTemplate<C, StackSize>` class template + `CStringA`, `CStringW`, `CString` typedefs
+- `src/string_impl.hpp` — all template implementations (include to instantiate custom StackSizes)
+- `src/string.cpp` — explicit instantiations for `char` and `wchar_t` at default StackSize
+- `platform/` — lightweight platform headers
+- `tests/` — CppUnit test suite (120 tests)
 
 Removed from the original: Object, Vector, Internet (URL/HTML), EStrings, GStrings, StringTable, tracing, and property macros.
 
 API uses modern camelCase conventions (`toUpper`, `trim`, `indexOf`, etc.).
+
+## Types
+
+| Type | Character | Default stack buffer |
+|---|---|---|
+| `CString` / `CStringA` | `char` | 18 chars |
+| `CStringW` | `wchar_t` | 18 wide chars |
+| `CStringTemplate<C, StackSize>` | any | custom |
+
+Strings up to `StackSize - 1` characters are stored on the stack with no heap allocation. Longer strings spill to the heap transparently.
 
 ## Requirements
 
@@ -45,7 +57,10 @@ Or directly:
 
 ```sh
 g++ -std=c++11 -I. -Isrc $(pkg-config --cflags --libs cppunit) \
-    -o tests/run_tests tests/main.cpp tests/string_test.cpp src/string.cpp
+    -o tests/run_tests \
+    tests/main.cpp tests/string_test.cpp tests/wstring_test.cpp \
+    tests/stack_size_test.cpp tests/stack_size_inst.cpp \
+    src/string.cpp
 ./tests/run_tests
 ```
 
@@ -60,14 +75,44 @@ g++ -std=c++11 -I. -Isrc -o myapp myapp.cpp src/string.cpp
 ```cpp
 #include <string.hpp>
 
-CString s("Hello, World!");
-s.toUpper();                              // "HELLO, WORLD!"
-s.toLower();                              // "hello, world!"
-s.trim();                                 // strip whitespace
-bool b = s.equalsIgnoreCase("HELLO");     // case-insensitive compare
-int i = s.indexOf('o');                   // find character
+// char strings
+CString a("Hello, World!");
+a.toUpper();                              // "HELLO, WORLD!"
+a.trim();                                 // strip whitespace
+bool b = a.equalsIgnoreCase("hello");     // case-insensitive compare
+int  i = a.indexOf('o');                  // find character
 CString n = CString::fromInt(42);         // int → string
-int v = CString::toInt(n);               // string → int
+int  v = CString::toInt(n);              // string → int
+
+// wide strings
+CStringW w(L"héllo");
+w.toLower();
+
+// custom stack size (no heap allocation for strings ≤ 63 chars)
+CStringTemplate<char, 64> s("short");
+```
+
+### Interoperability across StackSizes
+
+Strings with different `StackSize` values freely interoperate:
+
+```cpp
+CStringTemplate<char, 4>  small("hi");
+CStringTemplate<char, 32> large("hi");
+
+large = small;          // assign across sizes
+bool eq = (small == large);  // compare across sizes
+large.append(small);    // concatenate across sizes
+CStringTemplate<char, 4> copy(large);  // construct across sizes
+```
+
+To use a non-default `StackSize` in your own code, include the implementation
+header and add an explicit instantiation in one `.cpp` file:
+
+```cpp
+// mystring_inst.cpp
+#include <string_impl.hpp>
+template class CStringTemplate<char, 64>;
 ```
 
 ## API reference
@@ -78,7 +123,8 @@ int v = CString::toInt(n);               // string → int
 | `CString s` | empty string |
 | `CString s("hello")` | from C string |
 | `CString s('x')` | from character |
-| `CString s(other)` | copy |
+| `CString s(other)` | copy (same or different StackSize) |
+| `s = other` | assign (same or different StackSize) |
 
 ### Case
 | Method | Description |
@@ -110,12 +156,12 @@ int v = CString::toInt(n);               // string → int
 | `endsWithIgnoreCase(s)` | case-insensitive suffix |
 | `compare(s)` | lexicographic compare |
 | `compareIgnoreCase(s)` | case-insensitive compare |
-| Operators `==`, `!=`, `<`, `>`, `<=`, `>=` | standard comparisons |
+| Operators `==`, `!=`, `<`, `>`, `<=`, `>=` | standard comparisons (works across StackSizes) |
 
 ### Modification
 | Method | Description |
 |---|---|
-| `append(s)` / `+=` | concatenate |
+| `append(s)` / `+=` | concatenate (works across StackSizes) |
 | `insert(pos, s)` | insert at position |
 | `erase(start, count)` | remove characters |
 | `replace(src, tgt)` | replace substring |
@@ -124,14 +170,15 @@ int v = CString::toInt(n);               // string → int
 | `trimSpace()` | strip all whitespace (0–space range) |
 | `reverse()` | reverse in place |
 | `clear()` | empty the string |
-| `toUpper()` / `toLower()` | change case in place |
 
 ### Substrings
 | Method | Description |
 |---|---|
-| `mid(first, count, &result)` | extract substring |
-| `left(count, &result)` | left N characters |
-| `right(count, &result)` | right N characters |
+| `mid(first, count)` | extract substring |
+| `left(count)` | left N characters |
+| `right(count)` | right N characters |
+| `getLine(pos)` | extract next line (advances pos) |
+| `extractLine()` | remove and return first line |
 
 ### Numeric conversions
 | Method | Description |
@@ -146,3 +193,4 @@ int v = CString::toInt(n);               // string → int
 | `CString::toDouble(s)` | CString → double |
 | `CString::toHex(s)` | hex CString → int |
 | `isInt()` / `isFloat()` / `isLong()` / `isHex()` | type checks |
+

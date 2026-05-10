@@ -258,44 +258,36 @@ void StringSearchTest::testLastIndexOf() {
 
 void StringSubstringTest::testMid() {
     CString s("hello world");
-    CString r;
-    s.mid(6, &r);
-    CPPUNIT_ASSERT_EQUAL(std::string("world"), std::string(r.c_str()));
-    s.mid(0, 5, &r);
-    CPPUNIT_ASSERT_EQUAL(std::string("hello"), std::string(r.c_str()));
+    CPPUNIT_ASSERT_EQUAL(std::string("world"), std::string(s.mid(6).c_str()));
+    CPPUNIT_ASSERT_EQUAL(std::string("hello"), std::string(s.mid(0, 5).c_str()));
 }
 
 void StringSubstringTest::testLeft() {
     CString s("hello world");
-    CString r;
-    s.left(5, &r);
-    CPPUNIT_ASSERT_EQUAL(std::string("hello"), std::string(r.c_str()));
+    CPPUNIT_ASSERT_EQUAL(std::string("hello"), std::string(s.left(5).c_str()));
 }
 
 void StringSubstringTest::testRight() {
     CString s("hello world");
-    CString r;
-    s.right(5, &r);
-    CPPUNIT_ASSERT_EQUAL(std::string("world"), std::string(r.c_str()));
+    CPPUNIT_ASSERT_EQUAL(std::string("world"), std::string(s.right(5).c_str()));
 }
 
 void StringSubstringTest::testGetLine() {
     CString s("line1\nline2\nline3");
-    CString r;
     int pos = 0;
-    CPPUNIT_ASSERT(s.getLine(&r, pos) > 0);
+    CString r = s.getLine(pos);
     CPPUNIT_ASSERT_EQUAL(std::string("line1"), std::string(r.c_str()));
-    CPPUNIT_ASSERT(s.getLine(&r, pos) > 0);
+    r = s.getLine(pos);
     CPPUNIT_ASSERT_EQUAL(std::string("line2"), std::string(r.c_str()));
-    CPPUNIT_ASSERT(s.getLine(&r, pos) > 0);
+    r = s.getLine(pos);
     CPPUNIT_ASSERT_EQUAL(std::string("line3"), std::string(r.c_str()));
-    CPPUNIT_ASSERT_EQUAL(0, s.getLine(&r, pos));
+    r = s.getLine(pos);
+    CPPUNIT_ASSERT_EQUAL(0u, r.length());
 }
 
 void StringSubstringTest::testExtractLine() {
     CString s("first\nsecond");
-    CString r;
-    s.extractLine(&r);
+    CString r = s.extractLine();
     CPPUNIT_ASSERT_EQUAL(std::string("first"), std::string(r.c_str()));
     CPPUNIT_ASSERT_EQUAL(std::string("second"), std::string(s.c_str()));
 }
@@ -354,12 +346,6 @@ void StringMutationTest::testReplaceString() {
     CString s2("Hello World");
     CPPUNIT_ASSERT(s2.replace(CString("hello"), CString("Hi"), false));
     CPPUNIT_ASSERT_EQUAL(std::string("Hi World"), std::string(s2.c_str()));
-}
-
-void StringMutationTest::testReplaceRange() {
-    CString s("a1b2c3");
-    s.replace('1', '3', '0');
-    CPPUNIT_ASSERT_EQUAL(std::string("a0b0c0"), std::string(s.c_str()));
 }
 
 void StringMutationTest::testClear() {
@@ -456,12 +442,6 @@ void StringMiscTest::testCountChar() {
     CPPUNIT_ASSERT_EQUAL(0, s.count('z'));
 }
 
-void StringMiscTest::testCountRange() {
-    CString s("abc123");
-    CPPUNIT_ASSERT_EQUAL(3, s.count('0', '9'));
-    CPPUNIT_ASSERT_EQUAL(3, s.count('a', 'c'));
-}
-
 void StringMiscTest::testQuote() {
     CString s("hello");
     s.quote();
@@ -483,22 +463,6 @@ void StringMiscTest::testTerminateWith() {
     CPPUNIT_ASSERT_EQUAL(std::string("hello/"), std::string(s.c_str()));
     CPPUNIT_ASSERT(!s.terminateWith('/'));
     CPPUNIT_ASSERT_EQUAL(std::string("hello/"), std::string(s.c_str()));
-}
-
-void StringMiscTest::testRemoveDuplicate() {
-    /* collapses consecutive pairs where both chars fall within [chLeft, chRight] */
-    CString s("foo//bar");
-    s.removeDuplicate('/', '/');
-    CPPUNIT_ASSERT_EQUAL(std::string("foo/bar"), std::string(s.c_str()));
-    CString s2("a  b");
-    s2.removeDuplicate(' ', ' ');
-    CPPUNIT_ASSERT_EQUAL(std::string("a b"), std::string(s2.c_str()));
-}
-
-void StringMiscTest::testRemove() {
-    CString s("abc123");
-    s.remove('0', '9');
-    CPPUNIT_ASSERT_EQUAL(std::string("abc"), std::string(s.c_str()));
 }
 
 void StringMiscTest::testReadDigit() {

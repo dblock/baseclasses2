@@ -9,7 +9,5 @@ Makefile
 Makefile.each
 platform/config.hpp
 tests/run_tests
-configure~
 tests/run_tests
 lib/libbasecl.a
-*~

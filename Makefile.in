@@ -17,11 +17,12 @@ all debug:
 
 check:
 	@CXX@ -std=c++11 -I. -Isrc @CPPFLAGS@ \
-	  $(shell pkg-config --cflags --libs cppunit) \
+	  $(shell pkg-config --cflags cppunit) \
 	  -o tests/run_tests \
 	  tests/main.cpp tests/string_test.cpp tests/wstring_test.cpp \
 	  tests/stack_size_test.cpp tests/stack_size_inst.cpp \
-	  src/string.cpp
+	  src/string.cpp \
+	  $(shell pkg-config --libs cppunit)
 	./tests/run_tests
 
 clean: cleanup all

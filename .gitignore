@@ -7,8 +7,5 @@ config.status
 autom4te.cache/
 Makefile
 Makefile.each
-platform/config.hpp
 tests/run_tests
-tests/run_tests
-lib/libbasecl.a
-tests/run_tests
+*~

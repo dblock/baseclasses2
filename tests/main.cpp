@@ -6,6 +6,8 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/TestResult.h>
 
 #include "string_test.hpp"
 
@@ -23,5 +25,9 @@ int main() {
     CppUnit::TextUi::TestRunner runner;
     CppUnit::TestFactoryRegistry& registry = CppUnit::TestFactoryRegistry::getRegistry();
     runner.addTest(registry.makeTest());
+
+    CppUnit::BriefTestProgressListener listener;
+    runner.eventManager().addListener(&listener);
+
     return runner.run() ? 0 : 1;
 }

@@ -3,15 +3,14 @@ DIRS    = src
 
 PWD  = $(shell pwd)
 OBJ  = obj
-LIB  = @libdir@
+LIB  = lib
 AR   = ar
 RANLIB = ranlib
-prefix      = @prefix@
-exec_prefix = @exec_prefix@
 
 all debug:
 	@for I in $(DIRS); do cd $(PWD)/$$I; @MAKE@ -f ../Makefile.each $@ || exit 1; cd $(PWD); done
 	-@mkdir -p $(OBJ)
+	-@mkdir -p $(LIB)
 	-@rm -f $(LIB)/lib$(LIBNAME).a
 	$(AR) rc $(LIB)/lib$(LIBNAME).a $(OBJ)/*.o
 	$(RANLIB) $(LIB)/lib$(LIBNAME).a
